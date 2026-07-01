@@ -1,5 +1,9 @@
 // Firebase Admin SDK — Auth + Firestore + Realtime Database (optional)
-const admin = require('firebase-admin');
+const { initializeApp, cert, getApps } = require('firebase-admin/app');
+const { getAuth } = require('firebase-admin/auth');
+const { getFirestore, FieldValue, FieldPath } = require('firebase-admin/firestore');
+const { getStorage } = require('firebase-admin/storage');
+const { getDatabase } = require('firebase-admin/database');
 
 const projectId = process.env.FIREBASE_PROJECT_ID;
 const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
@@ -15,9 +19,9 @@ if (typeof privateKey === 'string' && privateKey.includes('\\n')) {
   privateKey = privateKey.replace(/\\n/g, '\n');
 }
 
-if (!admin.apps.length) {
+if (getApps().length === 0) {
   const appOptions = {
-    credential: admin.credential.cert({
+    credential: cert({
       projectId,
       clientEmail,
       privateKey,
@@ -25,17 +29,17 @@ if (!admin.apps.length) {
   };
   if (databaseURL) appOptions.databaseURL = databaseURL;
   if (storageBucketName.trim()) appOptions.storageBucket = storageBucketName.trim();
-  admin.initializeApp(appOptions);
+  initializeApp(appOptions);
 }
 
-const auth = admin.auth();
-const db = admin.firestore();
+const auth = getAuth();
+const db = getFirestore();
 db.settings({ ignoreUndefinedProperties: true });
 
 function getRealtimeDb() {
   if (!databaseURL) return null;
   try {
-    return admin.database();
+    return getDatabase();
   } catch {
     return null;
   }
@@ -45,10 +49,15 @@ function getRealtimeDb() {
 function getStorageBucket() {
   if (!storageBucketName.trim()) return null;
   try {
-    return admin.storage().bucket(storageBucketName.trim());
+    return getStorage().bucket(storageBucketName.trim());
   } catch {
     return null;
   }
 }
+
+/** Backward compat for modules using admin.firestore.FieldValue / FieldPath */
+const admin = {
+  firestore: { FieldValue, FieldPath },
+};
 
 module.exports = { admin, auth, db, getRealtimeDb, getStorageBucket };

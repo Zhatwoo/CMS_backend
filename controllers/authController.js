@@ -25,7 +25,7 @@ const setAuthCookie = (res, token) => {
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     maxAge: COOKIE_MAX_AGE_MS,
-    path: '/'
+    path: '/',
   });
 };
 

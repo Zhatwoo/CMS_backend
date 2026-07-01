@@ -1,0 +1,18 @@
+services:
+  cms-backend:
+    build: .
+    container_name: cms-backend
+    ports:
+      - "6000:5000"
+    env_file:
+      - .env
+    environment:
+      HOST: "0.0.0.0"
+    volumes:
+      - ./.env:/app/.env:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:5000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
