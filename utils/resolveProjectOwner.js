@@ -91,20 +91,7 @@ async function _performResolution(userId, projectId, normalizedEmail) {
     }
 
     // C) Check for Public Content ("anyone" access)
-    // CRITICAL OPTIMIZATION: Do NOT scan all projects. 
-    // We can use collectionGroup('projects') but filter by the document ID if the ID is unique.
-    // In Firestore, we filter by FieldPath.documentId() (which is '__name__')
-    const FieldPath = require('firebase-admin').firestore.FieldPath;
-
-    // We can't use collectionGroup filter by ID easily without knowing the full path,
-    // but we can query by a field if we ensure projects have 'id' field, OR
-    // just use a more targeted collectionGroup query if possible.
-
-    // Note: If you have MANY projects, querying collectionGroup('projects') without a filter 
-    // will be slow and expensive. Let's try to query by ID if Firestore allows it in collectionGroup.
-    // In many setups, theProjectId IS unique, so we can search where 'id' == projectId if projects store their ID.
-
-    // Fallback: Check for public access. We use a limited query.
+    // CRITICAL OPTIMIZATION: Do NOT scan all projects.
     const publicSnap = await db.collectionGroup('projects')
       .where('general_access', '==', 'anyone')
       .get(); // Still not ideal, but better than getting ALL projects.
